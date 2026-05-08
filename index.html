@@ -101,9 +101,21 @@
     }
     
     .button-group {
-      display: flex;
-      gap: 1rem;
-    }
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.top-buttons {
+  display: flex;
+  gap: 10px;
+}
+.department-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+}
     
     .theme-toggle, .export-button {
       background: var(--bg-glass);
@@ -659,10 +671,18 @@
             <p>Calendar-Based Project Schedule • Fri/Sat Weekends</p>
           </div>
         </div>
-        <div class="button-group">
-          <button class="export-button" onclick="exportToPDF()">📄 Export PDF</button>
-          <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
-        </div>
+    <div class="button-group">
+      <div class="top-buttons">
+        <button class="export-button" onclick="exportToPDF()">📄 Export PDF</button>
+        <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+    </div>
+
+      <div class="department-label">
+        Data Science Department
+      </div>
+</div>
+        
+        
       </div>
     </div>
 
