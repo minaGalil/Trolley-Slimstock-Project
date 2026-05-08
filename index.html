@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slimstock Migration Timeline</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #FF8200;
+      --primary-dark: #CC6800;
+      --primary-light: #FFA347;
+      --bg-main: #f8f9fa;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-glass: rgba(255, 255, 255, 0.7);
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --border: rgba(0, 0, 0, 0.1);
+      --shadow: rgba(0, 0, 0, 0.1);
+      --weekend: rgba(67, 130, 209, 0.05);
+    }
+    
+    [data-theme="dark"] {
+      --bg-main: #0a0e27;
+      --bg-card: rgba(20, 25, 50, 0.9);
+      --bg-glass: rgba(20, 25, 50, 0.7);
+      --text-primary: #e4e4e7;
+      --text-secondary: #a1a1aa;
+      --border: rgba(255, 255, 255, 0.1);
+      --shadow: rgba(0, 0, 0, 0.3);
+      --weekend: rgba(67, 130, 209, 0.05);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #1a1a1a 100%);
+      min-height: 100vh;
+      padding: 1rem;
+      color: var(--text-primary);
+    }
+    
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    
+    .glass-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px var(--shadow);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    
+    .logo-container {
+      width: 140px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 12px;
+      padding: 8px;
+    }
+    
+    .logo-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .title-section h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.25rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .title-section p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .theme-toggle, .export-button {
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .export-button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+    }
+    
+    .theme-toggle:hover, .export-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 12px;
+      padding: 1rem;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: translate(30%, -30%);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      position: relative;
+    }
+    
+    .stat-card:nth-child(2) { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .stat-card:nth-child(3) { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .stat-card:nth-child(4) { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    
+    .upload-zone {
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
+      border: 2px dashed var(--primary);
+      border-radius: 16px;
+      padding: 3rem;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--primary-light);
+      background: rgba(255, 130, 0, 0.05);
+      transform: scale(1.01);
+    }
+    
+    .upload-button {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 14px 32px;
+      border-radius: 50px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 130, 0, 0.3);
+    }
+    
+    .upload-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 130, 0, 0.4);
+    }
+    
+    .timeline-wrapper {
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow-x: auto;
+      box-shadow: 0 4px 20px var(--shadow);
+      margin-top: 1rem;
+    }
+    
+    .timeline-header {
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      color: white;
+      padding: 0.75rem 1.5rem;
+      font-size: 16px;
+      font-weight: 700;
+      display: block;
+      width: 100%;
+      position: sticky;
+      left: 0;
+      z-index: 15;
+    }
+    
+    .timeline-content {
+      position: relative;
+      padding: 0.5rem 0;
+      min-width: max-content;
+    }
+    
+    .calendar-header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 10;
+      padding: 0.5rem 0;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .calendar-row {
+      display: flex;
+      padding-left: 440px;
+    }
+    
+    .date-cell {
+      flex: 0 0 40px;
+      text-align: center;
+      padding: 0.5rem 0.25rem;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-left: 1px solid var(--border);
+    }
+    
+    .date-cell.weekend {
+      background: var(--weekend);
+      color: #FF1744;
+    }
+    
+    .date-cell.month-start {
+      border-left: 3px solid var(--primary);
+      font-weight: 700;
+    }
+    
+    .date-cell.today {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #000;
+      font-weight: 700;
+      position: relative;
+    }
+    
+    .date-cell.today::after {
+      content: '📍';
+      position: absolute;
+      top: -8px;
+      right: 2px;
+      font-size: 10px;
+    }
+    
+    .month-label {
+      font-size: 10px;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    
+    .task-row {
+      display: flex;
+      align-items: center;
+      min-height: 52px;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s;
+      position: relative;
+    }
+    
+    .task-row:hover {
+      background: rgba(255, 130, 0, 0.03);
+    }
+    
+    .task-info {
+      flex: 0 0 440px;
+      padding: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .task-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      flex-shrink: 0;
+    }
+    
+    .task-details {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .task-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .task-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    
+    .task-duration {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .timeline-track {
+      flex: 1;
+      position: relative;
+      min-width: max-content;
+      padding: 0.5rem 0;
+      min-height: 40px;
+    }
+    
+    .timeline-bar {
+      position: absolute;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    
+    .timeline-bar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--shadow);
+      z-index: 5;
+    }
+    
+    .timeline-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: translateX(-100%);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      100% { transform: translateX(100%); }
+    }
+    
+    .bar-dev {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .bar-hist {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(240, 147, 251, 0.3);
+    }
+    
+    .bar-uat {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 130, 0, 0.3);
+    }
+    
+    .bar-prod {
+      background: linear-gradient(135deg, #00E676 0%, #00C853 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
+    }
+    
+    .bar-vacation {
+      background: linear-gradient(135deg, #424242 0%, #212121 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      border: 2px solid #000;
+      top: 8px !important;
+      z-index: 3;
+    }
+    
+    .weekend-column {
+      position: absolute;
+      top: 0;
+      width: 40px;
+      background: var(--weekend);
+      opacity: 0.8;
+      pointer-events: none;
+      height: 100%;
+    }
+    
+    .today-marker {
+      position: absolute;
+      top: 0;
+      width: 3px;
+      background: linear-gradient(180deg, #FFD700, #FFA500);
+      pointer-events: none;
+      height: 100%;
+      z-index: 20;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+    
+    .today-marker::before {
+      content: 'TODAY';
+      position: absolute;
+      top: -20px;
+      left: -15px;
+      background: #FFD700;
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    
+    .tooltip {
+      position: fixed;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 13px;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.2s;
+      max-width: 300px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .tooltip.show {
+      opacity: 1;
+    }
+    
+    .legend {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem;
+      background: var(--bg-card);
+      border-radius: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+    
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    @media print {
+      body {
+        background: white !important;
+        padding: 0;
+      }
+      
+      .glass-card, .timeline-wrapper {
+        background: white !important;
+        box-shadow: none !important;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+        backdrop-filter: none !important;
+      }
+      
+      .theme-toggle, .export-button, .upload-button {
+        display: none !important;
+      }
+      
+      .timeline-content {
+        overflow: visible !important;
+      }
+      
+      .timeline-wrapper {
+        overflow: visible !important;
+      }
+      
+      .timeline-header {
+        background: white !important;
+        color: #FF8200 !important;
+        border-bottom: 3px solid #FF8200;
+      }
+      
+      .stat-card {
+        background: white !important;
+        border: 2px solid #FF8200;
+        color: #FF8200 !important;
+      }
+      
+      .stat-card::before {
+        display: none !important;
+      }
+      
+      .stat-label {
+        color: #666 !important;
+      }
+      
+      .stat-value {
+        color: #FF8200 !important;
+      }
+      
+      .date-cell {
+        background: white !important;
+        border: 1px solid #ddd;
+      }
+      
+      .date-cell.weekend {
+        background: #f5f5f5 !important;
+        color: #FF1744 !important;
+      }
+      
+      .date-cell.today {
+        background: #FFF9E6 !important;
+        border: 2px solid #FFD700 !important;
+      }
+      
+      .date-cell.month-start {
+        border-left: 3px solid #FF8200 !important;
+      }
+      
+      .task-icon {
+        background: white !important;
+        border: 2px solid #FF8200;
+        color: #FF8200 !important;
+      }
+      
+      .timeline-bar {
+        box-shadow: none !important;
+      }
+      
+      .timeline-bar::before {
+        display: none !important;
+      }
+      
+      .bar-dev {
+        background: white !important;
+        border: 2px solid #667eea;
+        color: #667eea !important;
+      }
+      
+      .bar-hist {
+        background: white !important;
+        border: 2px solid #f093fb;
+        color: #f093fb !important;
+      }
+      
+      .bar-uat {
+        background: white !important;
+        border: 2px solid #FF8200;
+        color: #FF8200 !important;
+      }
+      
+      .bar-prod {
+        background: white !important;
+        border: 2px solid #00E676;
+        color: #00E676 !important;
+      }
+      
+      .bar-vacation {
+        background: white !important;
+        border: 2px solid #424242;
+        color: #424242 !important;
+      }
+      
+      .weekend-column {
+        background: #f9f9f9 !important;
+        opacity: 0.3;
+      }
+      
+      .today-marker {
+        background: #FFD700 !important;
+      }
+      
+      .legend-dot {
+        border: 2px solid currentColor;
+        background: white !important;
+      }
+      
+      @page {
+        size: A4 landscape;
+        margin: 1cm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="glass-card">
+      <div class="header">
+        <div class="logo-section">
+          <div class="logo-container">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 80'%3E%3Ctext x='10' y='50' font-family='Arial' font-size='40' font-weight='bold' fill='%23FF8200'%3ETROLLEY%3C/text%3E%3C/svg%3E" alt="Trolley Logo">
+          </div>
+          <div class="title-section">
+            <h2>📅 Slimstock Migration Timeline</h2>
+            <p>Calendar-Based Project Schedule • Fri/Sat Weekends</p>
+          </div>
+        </div>
+        <div class="button-group">
+          <button class="export-button" onclick="exportToPDF()">📄 Export PDF</button>
+          <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Project Start</div>
+        <div class="stat-value" id="startDate">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Project End</div>
+        <div class="stat-value" id="endDate">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Working Days</div>
+        <div class="stat-value" id="workDays">0d</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Tasks</div>
+        <div class="stat-value" id="taskCount">0</div>
+      </div>
+    </div>
+
+    <div class="glass-card" id="uploadCard">
+      <div class="upload-zone" id="uploadZone">
+        <div style="font-size: 48px; margin-bottom: 1rem;">📁</div>
+        <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Drop Excel File Here</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 14px;">or click to browse</p>
+        <label for="fileInput" class="upload-button">Select Excel File</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+        <p style="color: var(--text-secondary); margin-top: 1rem; font-size: 13px;">
+          Supports: Dev/Test dates, Historical dates, Dependencies, Vacation merging
+        </p>
+      </div>
+    </div>
+
+    <div id="dashboardContent" class="hidden">
+      <div class="glass-card">
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+            Development & Testing
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
+            Historical Data Migration
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: linear-gradient(135deg, var(--primary), var(--primary-light));"></div>
+            UAT Testing
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #00E676, #00C853);"></div>
+            Production / ETL
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #424242, #212121);"></div>
+            🏖️ Vacation
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #FFD700, #FFA500);"></div>
+            📍 Today
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-wrapper">
+        <div class="timeline-header">
+          📊 Project Timeline - Fri/Sat Weekends
+        </div>
+        <div class="timeline-content">
+          <div class="calendar-header">
+            <div class="calendar-row" id="calendarHeader"></div>
+          </div>
+          <div id="ganttRows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    let tasks = [];
+    let allDates = [];
+    let currentTheme = 'light';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+    }
+    
+    function exportToPDF() {
+      const originalTheme = currentTheme;
+      if (currentTheme === 'dark') {
+        currentTheme = 'light';
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+      
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          if (originalTheme === 'dark') {
+            currentTheme = 'dark';
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        }, 100);
+      }, 100);
+    }
+
+    const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.getElementById('uploadZone');
+
+    fileInput.addEventListener('change', e => processFile(e.target.files[0]));
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+    });
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    function processFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false, dateNF: 'yyyy-mm-dd' });
+          parseData(jsonData);
+          document.getElementById('uploadCard').classList.add('hidden');
+          document.getElementById('dashboardContent').classList.remove('hidden');
+        } catch (error) {
+          alert('Error reading file: ' + error.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function parseData(data) {
+      tasks = [];
+      let headerRow = 0;
+
+      for (let i = 0; i < Math.min(5, data.length); i++) {
+        const row = data[i];
+        if (row && row[0] && row[0].toString().toLowerCase().includes('id')) {
+          headerRow = i;
+          break;
+        }
+      }
+
+      for (let i = headerRow + 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row || !row[0]) continue;
+
+        const id = parseInt(row[0]);
+        const name = row[1] ? row[1].toString().trim() : '';
+        const devDays = parseInt(row[2]) || 0;
+        const devStart = row[3] ? parseDate(row[3]) : null;
+        const devEnd = row[4] ? parseDate(row[4]) : null;
+        const histDays = parseInt(row[5]) || 0;
+        const histStart = row[6] ? parseDate(row[6]) : null;
+        const histEnd = row[7] ? parseDate(row[7]) : null;
+        const depsStr = row[8] ? row[8].toString().trim() : '';
+
+        if (!name || isNaN(id) || id <= 0) continue;
+
+        let deps = [];
+        if (depsStr) {
+          deps = depsStr.split(/[,;\s]+/).map(d => parseInt(d)).filter(d => !isNaN(d) && d > 0);
+        }
+
+        let type = 'dev';
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes('vacation')) type = 'vacation';
+        else if (nameLower.includes('uat') || nameLower.includes('testing')) type = 'uat';
+        else if (nameLower.includes('production') || nameLower.includes('prod') || nameLower.includes('etl')) type = 'prod';
+        else if (histDays > 0) type = 'both';
+
+        tasks.push({ id, name, devDays, devStart, devEnd, histDays, histStart, histEnd, deps, type });
+      }
+
+      if (tasks.length === 0) {
+        alert('No tasks found!');
+        return;
+      }
+
+      generateDateRange();
+      renderDashboard();
+    }
+
+    function parseDate(dateStr) {
+      if (dateStr instanceof Date) return dateStr;
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function generateDateRange() {
+      let minDate = null;
+      let maxDate = null;
+
+      tasks.forEach(task => {
+        if (task.devStart && (!minDate || task.devStart < minDate)) minDate = task.devStart;
+        if (task.devEnd && (!maxDate || task.devEnd > maxDate)) maxDate = task.devEnd;
+        if (task.histStart && (!minDate || task.histStart < minDate)) minDate = task.histStart;
+        if (task.histEnd && (!maxDate || task.histEnd > maxDate)) maxDate = task.histEnd;
+      });
+
+      allDates = [];
+      let current = new Date(minDate);
+      while (current <= maxDate) {
+        allDates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+    }
+
+    function isWeekend(date) {
+      const day = date.getDay();
+      return day === 5 || day === 6; // Friday=5, Saturday=6
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function renderDashboard() {
+      const workDays = allDates.filter(d => !isWeekend(d)).length;
+      
+      document.getElementById('startDate').textContent = formatDate(allDates[0]);
+      document.getElementById('endDate').textContent = formatDate(allDates[allDates.length - 1]);
+      document.getElementById('workDays').textContent = workDays + 'd';
+      
+      // Count unique task IDs for display
+      const uniqueIds = new Set(tasks.map(t => t.id));
+      document.getElementById('taskCount').textContent = uniqueIds.size;
+
+      renderTimeline();
+    }
+
+    function renderTimeline() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Calendar header
+      let lastMonth = '';
+      const headerHTML = allDates.map(date => {
+        const isWknd = isWeekend(date);
+        const isToday = date.toDateString() === today.toDateString();
+        const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+        const isMonthStart = monthName !== lastMonth;
+        lastMonth = monthName;
+
+        return `
+          <div class="date-cell ${isWknd ? 'weekend' : ''} ${isToday ? 'today' : ''} ${isMonthStart ? 'month-start' : ''}">
+            ${date.getDate()}
+            ${isMonthStart ? `<div class="month-label">${monthName}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('calendarHeader').innerHTML = headerHTML;
+
+      // Group tasks by ID - VACATION MERGING LOGIC
+      const taskGroups = {};
+      tasks.forEach(task => {
+        if (!taskGroups[task.id]) {
+          taskGroups[task.id] = { main: null, vacation: null };
+        }
+        if (task.type === 'vacation') {
+          taskGroups[task.id].vacation = task;
+        } else {
+          taskGroups[task.id].main = task;
+        }
+      });
+
+      const pixelsPerDay = 40;
+
+      const rowsHTML = Object.values(taskGroups).map(group => {
+        const task = group.main;
+        if (!task) return '';
+
+        const barClass = task.type === 'uat' ? 'bar-uat' :
+                        task.type === 'prod' ? 'bar-prod' : 'bar-dev';
+
+        let devBar = '';
+        if (task.devStart && task.devEnd) {
+          const devStartIdx = allDates.findIndex(d => d.toDateString() === task.devStart.toDateString());
+          const devEndIdx = allDates.findIndex(d => d.toDateString() === task.devEnd.toDateString());
+          if (devStartIdx >= 0 && devEndIdx >= 0) {
+            const x = devStartIdx * pixelsPerDay;
+            const w = (devEndIdx - devStartIdx + 1) * pixelsPerDay;
+            devBar = `
+              <div class="timeline-bar ${barClass}"
+                   style="left: ${x}px; width: ${w}px;"
+                   data-task="${task.name}"
+                   data-info="Dev: ${formatDate(task.devStart)} - ${formatDate(task.devEnd)} (${task.devDays}d)">
+                Dev: ${task.devDays}d
+              </div>
+            `;
+          }
+        }
+
+        let histBar = '';
+        if (task.histStart && task.histEnd) {
+          const histStartIdx = allDates.findIndex(d => d.toDateString() === task.histStart.toDateString());
+          const histEndIdx = allDates.findIndex(d => d.toDateString() === task.histEnd.toDateString());
+          if (histStartIdx >= 0 && histEndIdx >= 0) {
+            const x = histStartIdx * pixelsPerDay;
+            const w = (histEndIdx - histStartIdx + 1) * pixelsPerDay;
+            histBar = `
+              <div class="timeline-bar bar-hist"
+                   style="left: ${x}px; width: ${w}px;"
+                   data-task="${task.name}"
+                   data-info="Hist: ${formatDate(task.histStart)} - ${formatDate(task.histEnd)} (${task.histDays}d)">
+                Hist: ${task.histDays}d
+              </div>
+            `;
+          }
+        }
+
+        // VACATION BAR - MERGED INTO SAME ROW
+        let vacationBar = '';
+        if (group.vacation) {
+          const vac = group.vacation;
+          if (vac.devStart && vac.devEnd) {
+            const vacStartIdx = allDates.findIndex(d => d.toDateString() === vac.devStart.toDateString());
+            const vacEndIdx = allDates.findIndex(d => d.toDateString() === vac.devEnd.toDateString());
+            if (vacStartIdx >= 0 && vacEndIdx >= 0) {
+              const x = vacStartIdx * pixelsPerDay;
+              const w = (vacEndIdx - vacStartIdx + 1) * pixelsPerDay;
+              vacationBar = `
+                <div class="timeline-bar bar-vacation"
+                     style="left: ${x}px; width: ${w}px;"
+                     data-task="${vac.name}"
+                     data-info="Vacation: ${formatDate(vac.devStart)} - ${formatDate(vac.devEnd)}">
+                  🏖️ ${vac.name}
+                </div>
+              `;
+            }
+          }
+        }
+
+        // Weekend columns
+        const weekendCols = allDates.map((date, idx) => {
+          if (isWeekend(date)) {
+            return `<div class="weekend-column" style="left: ${idx * pixelsPerDay}px;"></div>`;
+          }
+          return '';
+        }).join('');
+
+        // Today marker
+        const todayIdx = allDates.findIndex(d => d.toDateString() === today.toDateString());
+        const todayMarker = todayIdx >= 0 ? `<div class="today-marker" style="left: ${todayIdx * pixelsPerDay + 20}px;"></div>` : '';
+
+        const startDate = task.devStart || task.histStart;
+        const endDate = task.histEnd || task.devEnd;
+
+        // Increase height if vacation present
+        const trackHeight = group.vacation ? '60px' : '40px';
+
+        return `
+          <div class="task-row">
+            <div class="task-info">
+              <div class="task-icon">${task.id}</div>
+              <div class="task-details">
+                <div class="task-name">${task.name}</div>
+                <div class="task-meta">${startDate ? formatDate(startDate) : ''} ${endDate ? '→ ' + formatDate(endDate) : ''}</div>
+              </div>
+              <div class="task-duration">${task.devDays + task.histDays}d</div>
+            </div>
+            <div class="timeline-track" style="min-height: ${trackHeight};">
+              ${weekendCols}
+              ${todayMarker}
+              ${devBar}
+              ${histBar}
+              ${vacationBar}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('ganttRows').innerHTML = rowsHTML;
+
+      // Tooltips
+      const bars = document.querySelectorAll('.timeline-bar');
+      const tooltip = document.getElementById('tooltip');
+
+      bars.forEach(bar => {
+        bar.addEventListener('mouseenter', e => {
+          tooltip.innerHTML = `<strong>${bar.dataset.task}</strong><br>${bar.dataset.info}`;
+          tooltip.classList.add('show');
+        });
+
+        bar.addEventListener('mousemove', e => {
+          tooltip.style.left = e.clientX + 15 + 'px';
+          tooltip.style.top = e.clientY + 15 + 'px';
+        });
+
+        bar.addEventListener('mouseleave', () => {
+          tooltip.classList.remove('show');
+        });
+      });
+    }
+  </script>
+</body>
+</html>
