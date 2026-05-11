@@ -20,6 +20,12 @@
       --border: rgba(0, 0, 0, 0.1);
       --shadow: rgba(0, 0, 0, 0.1);
       --weekend: rgba(67, 130, 209, 0.05);
+      --status-finished: #00E676;
+      --status-inprogress: #2196F3;
+      --status-delayed: #FF1744;
+      --status-notstarted: #9E9E9E;
+      --status-onhold: #FFC107;
+      --status-cancelled: #424242;      
     }
     
     [data-theme="dark"] {
@@ -31,6 +37,12 @@
       --border: rgba(255, 255, 255, 0.1);
       --shadow: rgba(0, 0, 0, 0.3);
       --weekend: rgba(67, 130, 209, 0.05);
+      --status-finished: #30e78f;
+      --status-inprogress: #2196F3;
+      --status-delayed: #FF1744;
+      --status-notstarted: #9E9E9E;
+      --status-onhold: #FFC107;
+      --status-cancelled: #424242;      
     }
     
     body {
@@ -443,6 +455,27 @@
       z-index: 3;
     }
     
+    .status-badge {
+      position: absolute;
+      top: -18px;
+      right: 5px;
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .status-finished { background: var(--status-finished); }
+    .status-inprogress { background: var(--status-inprogress); }
+    .status-delayed { background: var(--status-delayed); }
+    .status-notstarted { background: var(--status-notstarted); }
+    .status-onhold { background: var(--status-onhold); }
+    .status-cancelled { background: var(--status-cancelled); }
+
     .weekend-column {
       position: absolute;
       top: 0;
@@ -513,6 +546,7 @@
       font-size: 13px;
       color: var(--text-primary);
     }
+    
     
     .legend-dot {
       width: 12px;
@@ -747,6 +781,22 @@
             <div class="legend-dot" style="background: linear-gradient(135deg, #FFD700, #FFA500);"></div>
             📍 Today
           </div>
+
+
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--status-finished);"></div>
+            ✓ Finished
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--status-inprogress);"></div>
+            ⟳ In-Progress
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--status-delayed);"></div>
+            ⚠ Delayed
+          </div>
+
+          
         </div>
       </div>
 
@@ -846,10 +896,13 @@
         const devDays = parseInt(row[2]) || 0;
         const devStart = row[3] ? parseDate(row[3]) : null;
         const devEnd = row[4] ? parseDate(row[4]) : null;
-        const histDays = parseInt(row[5]) || 0;
-        const histStart = row[6] ? parseDate(row[6]) : null;
-        const histEnd = row[7] ? parseDate(row[7]) : null;
-        const depsStr = row[8] ? row[8].toString().trim() : '';
+
+        const devStatus = row[5] ? row[5].toString().trim() : 'Not-Started';
+        const histDays = parseInt(row[6]) || 0;
+        const histStart = row[7] ? parseDate(row[7]) : null;
+        const histEnd = row[8] ? parseDate(row[8]) : null;
+        const histStatus = row[9] ? row[9].toString().trim() : null;
+        const depsStr = row[10] ? row[10].toString().trim() : '';
 
         if (!name || isNaN(id) || id <= 0) continue;
 
@@ -865,7 +918,7 @@
         else if (nameLower.includes('production') || nameLower.includes('prod') || nameLower.includes('etl')) type = 'prod';
         else if (histDays > 0) type = 'both';
 
-        tasks.push({ id, name, devDays, devStart, devEnd, histDays, histStart, histEnd, deps, type });
+        tasks.push({ id, name, devDays, devStart, devEnd,devStatus, histDays, histStart, histEnd,histStatus, deps, type });
       }
 
       if (tasks.length === 0) {
@@ -977,14 +1030,19 @@
           if (devStartIdx >= 0 && devEndIdx >= 0) {
             const x = devStartIdx * pixelsPerDay;
             const w = (devEndIdx - devStartIdx + 1) * pixelsPerDay;
-            devBar = `
-              <div class="timeline-bar ${barClass}"
-                   style="left: ${x}px; width: ${w}px;"
-                   data-task="${task.name}"
-                   data-info="Dev: ${formatDate(task.devStart)} - ${formatDate(task.devEnd)} (${task.devDays}d)">
-                Dev: ${task.devDays}d
-              </div>
-            `;
+            
+          const devStatusClass = task.devStatus.toLowerCase().replace(/[^a-z]/g, '');
+          devBar = `
+            <div class="timeline-bar ${barClass}"
+                style="left: ${x}px; width: ${w}px;"
+                data-task="${task.name}"
+                data-info="Dev: ${formatDate(task.devStart)} - ${formatDate(task.devEnd)} (${task.devDays}d) - ${task.devStatus}">
+              Dev: ${task.devDays}d
+              <span class="status-badge status-${devStatusClass}">${task.devStatus}</span>
+            </div>
+          `;
+
+
           }
         }
 
@@ -995,14 +1053,20 @@
           if (histStartIdx >= 0 && histEndIdx >= 0) {
             const x = histStartIdx * pixelsPerDay;
             const w = (histEndIdx - histStartIdx + 1) * pixelsPerDay;
-            histBar = `
-              <div class="timeline-bar bar-hist"
-                   style="left: ${x}px; width: ${w}px;"
-                   data-task="${task.name}"
-                   data-info="Hist: ${formatDate(task.histStart)} - ${formatDate(task.histEnd)} (${task.histDays}d)">
-                Hist: ${task.histDays}d
-              </div>
-            `;
+
+          const histStatusClass = task.histStatus ? task.histStatus.toLowerCase().replace(/[^a-z]/g, '') : 'notstarted';
+          const histStatusText = task.histStatus || 'Not-Started';
+          histBar = `
+            <div class="timeline-bar bar-hist"
+                style="left: ${x}px; width: ${w}px;"
+                data-task="${task.name}"
+                data-info="Hist: ${formatDate(task.histStart)} - ${formatDate(task.histEnd)} (${task.histDays}d) - ${histStatusText}">
+              Hist: ${task.histDays}d
+              <span class="status-badge status-${histStatusClass}">${histStatusText}</span>
+            </div>
+          `;
+
+
           }
         }
 
