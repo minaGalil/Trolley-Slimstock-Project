@@ -20,6 +20,7 @@
       --border: rgba(0, 0, 0, 0.1);
       --shadow: rgba(0, 0, 0, 0.1);
       --weekend: rgba(67, 130, 209, 0.05);
+
       --status-finished: #00E676;
       --status-inprogress: #2196F3;
       --status-delayed: #FF1744;
@@ -37,6 +38,7 @@
       --border: rgba(255, 255, 255, 0.1);
       --shadow: rgba(0, 0, 0, 0.3);
       --weekend: rgba(67, 130, 209, 0.05);
+
       --status-finished: #30e78f;
       --status-inprogress: #2196F3;
       --status-delayed: #FF1744;
@@ -671,6 +673,28 @@
         color: #424242 !important;
       }
       
+      
+    .status-badge {
+      position: absolute;
+      top: -18px;
+      right: 5px;
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .status-finished { background: var(--status-finished); }
+    .status-inprogress { background: var(--status-inprogress); }
+    .status-delayed { background: var(--status-delayed); }
+    .status-notstarted { background: var(--status-notstarted); }
+    .status-onhold { background: var(--status-onhold); }
+    .status-cancelled { background: var(--status-cancelled); }
+    
       .weekend-column {
         background: #f9f9f9 !important;
         opacity: 0.3;
@@ -918,7 +942,7 @@
         else if (nameLower.includes('production') || nameLower.includes('prod') || nameLower.includes('etl')) type = 'prod';
         else if (histDays > 0) type = 'both';
 
-        tasks.push({ id, name, devDays, devStart, devEnd,devStatus, histDays, histStart, histEnd,histStatus, deps, type });
+        tasks.push({   id,   name,   devDays,   devStart,   devEnd,   devStatus,  histDays,   histStart,   histEnd,   histStatus,  deps,   type });
       }
 
       if (tasks.length === 0) {
