@@ -610,6 +610,8 @@
         transition: width 0.5s ease;
       }
 
+
+      
       .alert-card {
         border-left-color: #00C853;
       }
@@ -797,7 +799,7 @@
     </div>
 
       <div class="department-label">
-        Data Science Department - version 1.4 2026-06-18
+        Data Science Department - version 1.5 2026-06-18
       </div>
 </div>
         
@@ -839,6 +841,7 @@
 
     <div id="dashboardContent" class="hidden">
 
+      
       <div class="progress-grid">
         <div class="progress-card">
           <div class="progress-label">Project Progress</div>
@@ -869,7 +872,29 @@
         </div>
       </div>      
 
-      <div class="glass-card">
+      <div id="ForecastingContent" class="hidden">
+
+          <div class="progress-card">
+            <div class="progress-label">Forecast Finish Date</div>
+            <div class="progress-value small" id="forecastFinishDate">-</div>
+          </div>
+
+          <div class="progress-card">
+            <div class="progress-label">Schedule Variance</div>
+            <div class="progress-value small" id="scheduleVariance">-</div>
+          </div>
+
+          <div class="progress-card">
+            <div class="progress-label">SPI</div>
+            <div class="progress-value small" id="scheduleSPI">-</div>
+          </div>
+
+          <div class="progress-card">
+            <div class="progress-label">Forecast Confidence</div>
+            <div class="progress-value small" id="forecastConfidence">-</div>
+          </div>
+      </div> 
+        <div class="glass-card">
         <div class="legend">
           <div class="legend-item">
             <div class="legend-dot" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
@@ -1117,7 +1142,7 @@
       const total = mainTasks.length + 2  ; 
       // const total = 14;
       const remaining = total - finished - inProgress - 1 ;
-      const progressPercent = total > 0 ? Math.round((finished + (inProgress * 0.5)) / total * 100) : 0;
+      const progressPercent = total > 0 ? Math.round((finished + ( inProgress * 0.5 )) / total * 100) : 0;
 
       document.getElementById('projectProgress').textContent = progressPercent + '%';
       document.getElementById('projectProgressBar').style.width = progressPercent + '%';
@@ -1153,11 +1178,126 @@
 
       document.getElementById('projectHealth').textContent = healthMessage;
 
+              // ===============================
+        // FORECAST CALCULATION
+        // ===============================
+
+        const projectStart = allDates[0];
+        // const plannedEnd = allDates[allDates.length - 1];
+
+        const todayClean = new Date();
+        todayClean.setHours(0, 0, 0, 0);
+
+        const elapsedWorkingDays = workingDaysBetween(projectStart, todayClean);
+        const totalWorkingDays = workingDaysBetween(projectStart, plannedEnd);
+
+        const weightedCompleted =
+          finished + (inProgress * 0.5);
+
+        const weightedRemaining =
+          total - weightedCompleted;
+
+        const actualVelocity =
+          elapsedWorkingDays > 0
+            ? weightedCompleted / elapsedWorkingDays
+            : 0;
+
+        const remainingWorkingDays =
+          actualVelocity > 0
+            ? Math.ceil(weightedRemaining / actualVelocity)
+            : 0;
+
+        const forecastFinishDate =
+          actualVelocity > 0
+            ? addWorkingDays(todayClean, remainingWorkingDays)
+            : plannedEnd;
+
+        const forecastVarianceDays =
+          workingDaysBetween(forecastFinishDate, plannedEnd);
+
+        let varianceText = '';
+
+        if (forecastFinishDate < plannedEnd) {
+          varianceText = '+' + forecastVarianceDays + ' Days Ahead';
+        } else if (forecastFinishDate > plannedEnd) {
+          varianceText = '-' + workingDaysBetween(plannedEnd, forecastFinishDate) + ' Days Behind';
+        } else {
+          varianceText = 'On Time';
+        }
+
+      const expectedProgress_2 =
+        totalWorkingDays > 0
+          ? Math.min(100, Math.round((elapsedWorkingDays / totalWorkingDays) * 100))
+          : 0;
+
+      const spi =
+        expectedProgress_2 > 0
+          ? (progressPercent / expectedProgress_2).toFixed(2)
+          : '0.00';
+
+      let confidence = '';
+
+      if (elapsedWorkingDays >= 10 && total >= 10 && delayed === 0) {
+        confidence = '🟢 High';
+      } else if (elapsedWorkingDays >= 5 && delayed <= 1) {
+        confidence = '🟡 Medium';
+      } else {
+        confidence = '🔴 Low';
+      }
+
+      document.getElementById('forecastFinishDate').textContent =
+        formatFullDate(forecastFinishDate);
+
+      document.getElementById('scheduleVariance').textContent =
+        varianceText;
+
+      document.getElementById('scheduleSPI').textContent =
+        spi;
+
+      document.getElementById('forecastConfidence').textContent =
+        confidence;
+
       renderTimeline();
     }
 
 
+      function workingDaysBetween(startDate, endDate) {
+        let count = 0;
+        let current = new Date(startDate);
 
+        current.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
+        while (current <= endDate) {
+          if (!isWeekend(current)) count++;
+          current.setDate(current.getDate() + 1);
+        }
+
+        return count;
+      }
+
+      function addWorkingDays(startDate, daysToAdd) {
+        let result = new Date(startDate);
+        let addedDays = 0;
+
+        while (addedDays < daysToAdd) {
+          result.setDate(result.getDate() + 1);
+
+          if (!isWeekend(result)) {
+            addedDays++;
+          }
+        }
+
+        return result;
+      }
+
+      function formatFullDate(date) {
+        return date.toLocaleDateString('en-US', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+      }
 
     function renderTimeline() {
       const today = new Date();
