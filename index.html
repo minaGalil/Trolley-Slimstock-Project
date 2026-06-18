@@ -872,7 +872,7 @@
     </div>
 
       <div class="department-label">
-        Data Science Department - version 2.6 2026-06-18
+        Data Science Department - version 2.7 2026-06-18
       </div>
 </div>
         
@@ -1201,7 +1201,7 @@
       // Count unique task IDs for display
         const mainTasks = tasks.filter(t => t.type !== 'vacation');
 
-        document.getElementById('taskCount').textContent = mainTasks.length;
+        document.getElementById('taskCount').textContent = mainTasks.length + 2 ;
 
       const finished = mainTasks.filter(t =>
         (t.devStatus && t.devStatus.toLowerCase().includes('finished')) ||
