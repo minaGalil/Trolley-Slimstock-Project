@@ -558,7 +558,62 @@
       height: 12px;
       border-radius: 50%;
     }
-    
+
+          
+      .progress-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .progress-card {
+        background: var(--bg-card);
+        border-radius: 14px;
+        padding: 1rem;
+        box-shadow: 0 4px 18px var(--shadow);
+        border-left: 5px solid var(--primary);
+      }
+
+      .progress-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .progress-value {
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--primary);
+      }
+
+      .progress-value.small {
+        font-size: 18px;
+      }
+
+      .progress-bar-bg {
+        width: 100%;
+        height: 10px;
+        background: #e5e7eb;
+        border-radius: 20px;
+        margin-top: 10px;
+        overflow: hidden;
+      }
+
+      .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #00C853, #00E676);
+        border-radius: 20px;
+        transition: width 0.5s ease;
+      }
+
+      .alert-card {
+        border-left-color: #00C853;
+      }
+
     .hidden {
       display: none !important;
     }
@@ -675,60 +730,7 @@
         border: 2px solid #424242;
         color: #424242 !important;
       }
-      .progress-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-      }
 
-      .progress-card {
-        background: var(--bg-card);
-        border-radius: 14px;
-        padding: 1rem;
-        box-shadow: 0 4px 18px var(--shadow);
-        border-left: 5px solid var(--primary);
-      }
-
-      .progress-label {
-        font-size: 12px;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-      }
-
-      .progress-value {
-        font-size: 30px;
-        font-weight: 800;
-        color: var(--primary);
-      }
-
-      .progress-value.small {
-        font-size: 18px;
-      }
-
-      .progress-bar-bg {
-        width: 100%;
-        height: 10px;
-        background: #e5e7eb;
-        border-radius: 20px;
-        margin-top: 10px;
-        overflow: hidden;
-      }
-
-      .progress-bar-fill {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #00C853, #00E676);
-        border-radius: 20px;
-        transition: width 0.5s ease;
-      }
-
-      .alert-card {
-        border-left-color: #00C853;
-      }
-      
     .status-badge {
       position: absolute;
       top: 50%;
@@ -836,6 +838,37 @@
     </div>
 
     <div id="dashboardContent" class="hidden">
+
+      <div class="progress-grid">
+        <div class="progress-card">
+          <div class="progress-label">Project Progress</div>
+          <div class="progress-value" id="projectProgress">0%</div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="projectProgressBar"></div>
+          </div>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-label">Finished Interfaces</div>
+          <div class="progress-value" id="finishedTasks">0</div>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-label">In-Progress</div>
+          <div class="progress-value" id="inProgressTasks">0</div>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-label">Remaining</div>
+          <div class="progress-value" id="remainingTasks">0</div>
+        </div>
+
+        <div class="progress-card alert-card">
+          <div class="progress-label">Management Status</div>
+          <div class="progress-value small" id="projectHealth">Checking...</div>
+        </div>
+      </div>      
+
       <div class="glass-card">
         <div class="legend">
           <div class="legend-item">
@@ -892,37 +925,14 @@
           <div id="ganttRows"></div>
         </div>
       </div>
+
+
+
     </div>
 
-    <div class="progress-grid">
-      <div class="progress-card">
-        <div class="progress-label">Project Progress</div>
-        <div class="progress-value" id="projectProgress">0%</div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="projectProgressBar"></div>
-        </div>
-      </div>
 
-      <div class="progress-card">
-        <div class="progress-label">Finished Interfaces</div>
-        <div class="progress-value" id="finishedTasks">0</div>
-      </div>
 
-      <div class="progress-card">
-        <div class="progress-label">In-Progress</div>
-        <div class="progress-value" id="inProgressTasks">0</div>
-      </div>
 
-      <div class="progress-card">
-        <div class="progress-label">Remaining</div>
-        <div class="progress-value" id="remainingTasks">0</div>
-      </div>
-
-      <div class="progress-card alert-card">
-        <div class="progress-label">Management Status</div>
-        <div class="progress-value small" id="projectHealth">Checking...</div>
-      </div>
-    </div>
   </div>
 
   <div class="tooltip" id="tooltip"></div>
@@ -1105,7 +1115,7 @@
 
       const total = mainTasks.length;
       const remaining = total - finished;
-      const progressPercent = total > 0 ? Math.round((finished / total) * 100) : 0;
+      const progressPercent = total > 0 ? Math.round((( finished * 100 + inProgress * 50) / total) * 100) : 0;
 
       document.getElementById('projectProgress').textContent = progressPercent + '%';
       document.getElementById('projectProgressBar').style.width = progressPercent + '%';
@@ -1118,15 +1128,26 @@
 
       let healthMessage = '';
 
-      if (progressPercent >= 80 && today <= plannedEnd) {
-        healthMessage = '✅ Strong Performance';
-      } else if (progressPercent >= 60 && today > plannedEnd) {
-        healthMessage = '⚠️ Good Progress, Timeline Exceeded';
-      } else if (delayed > 0) {
-        healthMessage = '🔴 Attention Required';
-      } else {
-        healthMessage = '🟡 Monitor Closely';
-      }
+        const elapsedDays = allDates.filter(d => d <= today).length;
+        const totalDays = allDates.length;
+
+        const expectedProgress =
+            totalDays > 0
+                ? Math.round((elapsedDays / totalDays) * 100)
+                : 0;
+
+        if (progressPercent >= expectedProgress + 10) {
+            healthMessage = '🟢 Ahead of Plan';
+        }
+        else if (progressPercent >= expectedProgress - 5) {
+            healthMessage = '🟢 On Track';
+        }
+        else if (progressPercent >= expectedProgress - 15) {
+            healthMessage = '🟡 Monitor Closely';
+        }
+        else {
+            healthMessage = '🔴 Behind Plan';
+        }
 
       document.getElementById('projectHealth').textContent = healthMessage;
 
