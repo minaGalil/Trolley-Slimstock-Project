@@ -567,6 +567,38 @@
         margin-bottom: 1rem;
       }
 
+
+            .executive-progress-layout {
+        display: grid;
+        grid-template-columns: 1fr 260px;
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+
+      .progress-left {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .progress-grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+
+      .management-status-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .management-status-card .progress-value {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+
       .progress-card {
         background: var(--bg-card);
         border-radius: 14px;
@@ -799,7 +831,7 @@
     </div>
 
       <div class="department-label">
-        Data Science Department - version 1.8 2026-06-18
+        Data Science Department - version 1.9 2026-06-18
       </div>
 </div>
         
@@ -841,57 +873,65 @@
 
 <div id="dashboardContent" class="hidden">
 
-  <div class="progress-grid">
+<div class="executive-progress-layout">
 
-    <div class="progress-card">
-      <div class="progress-label">Project Progress</div>
-      <div class="progress-value" id="projectProgress">0%</div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="projectProgressBar"></div>
+  <div class="progress-left">
+
+    <div class="progress-grid progress-grid-4">
+      <div class="progress-card">
+        <div class="progress-label">Project Progress</div>
+        <div class="progress-value" id="projectProgress">0%</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="projectProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-label">Finished Interfaces</div>
+        <div class="progress-value" id="finishedTasks">0</div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-label">In-Progress</div>
+        <div class="progress-value" id="inProgressTasks">0</div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-label">Remaining</div>
+        <div class="progress-value" id="remainingTasks">0</div>
       </div>
     </div>
 
-    <div class="progress-card">
-      <div class="progress-label">Finished Interfaces</div>
-      <div class="progress-value" id="finishedTasks">0</div>
-    </div>
+    <div class="progress-grid progress-grid-4">
+      <div class="progress-card">
+        <div class="progress-label">Forecast Finish Date</div>
+        <div class="progress-value small" id="forecastFinishDate">-</div>
+      </div>
 
-    <div class="progress-card">
-      <div class="progress-label">In-Progress</div>
-      <div class="progress-value" id="inProgressTasks">0</div>
-    </div>
+      <div class="progress-card">
+        <div class="progress-label">Schedule Variance</div>
+        <div class="progress-value small" id="scheduleVariance">-</div>
+      </div>
 
-    <div class="progress-card">
-      <div class="progress-label">Remaining</div>
-      <div class="progress-value" id="remainingTasks">0</div>
-    </div>
+      <div class="progress-card">
+        <div class="progress-label">SPI</div>
+        <div class="progress-value small" id="scheduleSPI">-</div>
+      </div>
 
-    <div class="progress-card alert-card">
-      <div class="progress-label">Management Status</div>
-      <div class="progress-value small" id="projectHealth">Checking...</div>
-    </div>
-
-    <div class="progress-card">
-      <div class="progress-label">Forecast Finish Date</div>
-      <div class="progress-value small" id="forecastFinishDate">-</div>
-    </div>
-
-    <div class="progress-card">
-      <div class="progress-label">Schedule Variance</div>
-      <div class="progress-value small" id="scheduleVariance">-</div>
-    </div>
-
-    <div class="progress-card">
-      <div class="progress-label">SPI</div>
-      <div class="progress-value small" id="scheduleSPI">-</div>
-    </div>
-
-    <div class="progress-card">
-      <div class="progress-label">Forecast Confidence</div>
-      <div class="progress-value small" id="forecastConfidence">-</div>
+      <div class="progress-card">
+        <div class="progress-label">Forecast Confidence</div>
+        <div class="progress-value small" id="forecastConfidence">-</div>
+      </div>
     </div>
 
   </div>
+
+  <div class="progress-card alert-card management-status-card">
+    <div class="progress-label">Management Status</div>
+    <div class="progress-value small" id="projectHealth">Checking...</div>
+  </div>
+
+</div>
   
       
         <div class="glass-card">
