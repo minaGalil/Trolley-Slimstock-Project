@@ -797,7 +797,7 @@
     </div>
 
       <div class="department-label">
-        Data Science Department - version 1.1 2026-06-18
+        Data Science Department - version 1.2 2026-06-18
       </div>
 </div>
         
@@ -820,7 +820,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Tasks</div>
-        <div class="stat-value" id="taskCount">0</div>
+        <div class="stat-value" id="14">0</div>
       </div>
     </div>
 
@@ -1113,9 +1113,12 @@
         (t.histStatus && t.histStatus.toLowerCase().includes('delayed'))
       ).length;
 
-      const total = mainTasks.length;
+      
+      // const total = mainTasks.length 
+
+      const total = 14;
       const remaining = total - finished - 1 ;
-      const progressPercent = total > 0 ? Math.round((finished + (inProgress * 0.5)) / total * 100) : 0;
+      const progressPercent = total > 0 ? Math.round((finished + (inProgress * 0.5)) / 14 * 100) : 0;
 
       document.getElementById('projectProgress').textContent = progressPercent + '%';
       document.getElementById('projectProgressBar').style.width = progressPercent + '%';
