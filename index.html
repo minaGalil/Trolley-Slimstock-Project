@@ -1115,7 +1115,7 @@
 
       const total = mainTasks.length;
       const remaining = total - finished;
-      const progressPercent = total > 0 ? Math.round((( finished * 100 + inProgress * 50) / total) * 100) : 0;
+      const progressPercent = total > 0 ? Math.round((finished + (inProgress * 0.5)) / total * 100) : 0;
 
       document.getElementById('projectProgress').textContent = progressPercent + '%';
       document.getElementById('projectProgressBar').style.width = progressPercent + '%';
