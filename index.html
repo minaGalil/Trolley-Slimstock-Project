@@ -799,7 +799,7 @@
     </div>
 
       <div class="department-label">
-        Data Science Department - version 1.7 2026-06-18
+        Data Science Department - version 1.8 2026-06-18
       </div>
 </div>
         
@@ -1142,15 +1142,7 @@
       // const total = 14;
       const remaining = total - finished - inProgress - 1 ;
       const progressPercent = total > 0 ? Math.round((finished + ( inProgress * 0.5 )) / total * 100) : 0;
-
-<!--
-      const total = mainTasks.length + 2 ;
-      const remaining = total - finished - inProgress;
-
-      const progressPercent = total > 0
-        ? Math.round((finished + (inProgress * 0.5)) / total * 100)
-        : 0;
--->        
+ 
 
       document.getElementById('projectProgress').textContent = progressPercent + '%';
       document.getElementById('projectProgressBar').style.width = progressPercent + '%';
